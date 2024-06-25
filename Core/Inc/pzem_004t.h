@@ -9,6 +9,7 @@
 #define INC_PZEM_004T_H_
 
 #include <stdint.h>
+#include <string.h>
 #include "stm32f4xx_hal.h"
 #include "main.h"
 
@@ -17,10 +18,10 @@
 
 #define default_addr		0xF8
 
-
-// COMMANDS---------------------------------
-
-//------------------------------------------
+/*
+ * error_check map
+ * 0x01= no communication
+ */
 typedef struct
 {
 	uint32_t 	voltage;
@@ -31,12 +32,17 @@ typedef struct
 	uint32_t 	power_factor;
 	uint32_t 	alarm_status;
 
+	uint8_t 	error_check;
+
 } energyValues_t;
 
+
 //FUNCTIONS -----------------------------------
-void pzem_init(UART_HandleTypeDef Uart_num);
+
+void pzem_init(UART_HandleTypeDef Uart_typedef);
 uint16_t CRC_16(const unsigned char *data, unsigned int len);
 energyValues_t read_PZEM();
+void reset_PZEM();
 void CRC_TESTE();
 //--------------------------------------------
 

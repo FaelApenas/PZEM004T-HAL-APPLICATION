@@ -47,7 +47,13 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+#ifdef __GNUC__
+/* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
 
 /* USER CODE END PV */
 
@@ -98,6 +104,7 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   energyValues_t pzem_values;
+  pzem_init(huart1);
 
   /* USER CODE END 2 */
 
@@ -109,7 +116,17 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	 pzem_values=read_PZEM();
-
+	 if (pzem_values.error_check==0x01)
+	 {
+		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1);
+	 }
+	 else
+	 {
+		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
+	 }
+	 char str[40];
+	 sprintf(&str,"v: %d\n",pzem_values.voltage);
+	 HAL_UART_Transmit(&huart2, str, 10, HAL_MAX_DELAY);
 	 HAL_Delay(2000);
   /* USER CODE END 3 */
   }

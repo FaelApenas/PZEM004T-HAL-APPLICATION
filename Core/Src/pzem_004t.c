@@ -13,13 +13,12 @@ uint8_t read_command[8]={default_addr,0x04,0x00,0x00,0x00,0x0A,0x64,0x64};
 uint8_t reset_command[4]={default_addr,0x42,0xC2,0x41};
 //------------------------------------------
 
-
-UART_HandleTypeDef UART_HANDLE;// UART_HANDLE
-
+UART_HandleTypeDef UART_HANDLE ;// UART_HANDLE
 
 
 
-//void pzem_init(UART_HandleTypeDef Uart_num) {UART= Uart_num;}
+
+void pzem_init(UART_HandleTypeDef Uart_typedef) { UART_HANDLE= Uart_typedef; }
 
 
 
@@ -74,15 +73,29 @@ uint16_t CRC_16( const unsigned char *buf, unsigned int len )
 	return crc;
 }
 
+void reset_PZEM()
+{
+	HAL_UART_Transmit(&UART_HANDLE, (uint8_t*)&reset_command, 4, 20);
+}
 
 energyValues_t read_PZEM()
 {
 	//Send the command and recieve the buffer------------------------
 	energyValues_t values;
+	memset(&values, 0, sizeof(values));
+
 	uint8_t buf[25];
 	memset(buf, 0, sizeof(buf));
-	HAL_UART_Transmit(&huart1, (uint8_t*)&read_command, 8, 20);
-	HAL_UART_Receive(&huart1, buf, 25, 250);
+
+	HAL_UART_Transmit(&UART_HANDLE, (uint8_t*)&read_command, 8, 20);
+	HAL_UART_Receive(&UART_HANDLE, buf, 25, 250);
+
+	if (buf[0]!=default_addr)
+	{
+		values.error_check=0x01;
+	//	HAL_UART_Transmit(&UART_HANDLE, (uint8_t*)&reset_command, 4, 20);
+		return values;
+	}
 	//---------------------------------------------------------------
 
 	uint16_t crc_calculated= CRC_16(buf, sizeof(buf)-2); // Calculates the CRC from buffer
@@ -90,7 +103,6 @@ energyValues_t read_PZEM()
 
 	if(crc_calculated==crc_buffer)
 	{
-
 		//Put the values in the struct-----------------------------------
 		values.voltage=((uint32_t) 	buf[3]<< 8  	|(uint32_t) buf[4]);
 		values.current= ((uint32_t) buf[5]<<8 	| (uint32_t)buf[6] 	| (uint32_t)buf[7]<<24 	|(uint32_t)buf[8]<<16);
@@ -103,8 +115,7 @@ energyValues_t read_PZEM()
 	}
 
 
-
-	//HAL_Delay(2);
+	values.error_check=0x00; //no errors;
 	return values;
 
 }

@@ -1,2 +1,3 @@
-../Core/Src/pzem_004t.c:26:10:CRC_16	2
-../Core/Src/pzem_004t.c:78:16:read_PZEM	2
+../Core/Src/pzem_004t.c:21:6:pzem_init	1
+../Core/Src/pzem_004t.c:25:10:CRC_16	2
+../Core/Src/pzem_004t.c:77:16:read_PZEM	3
